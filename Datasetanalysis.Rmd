@@ -1,0 +1,104 @@
+---
+title: "Youtube Dataset Analysis"
+output: html_notebook
+---
+
+This is an analysis using quanteda. To find the most used word in the Youtube Trending videos from U.S.A and U.K.
+The Dataset was obtained from kaggle.
+
+Dataset Link:
+https://www.kaggle.com/datasnaek/youtube
+
+
+```{r}
+#install packages
+#install libraries
+#install.packages(stm)
+#install.packages("quanteda")
+#install.packages("quanteda.textmodels")
+#install.packages("quanteda.textstats")
+#install.packages("quanteda.textplots")
+```
+<h2>UK Data</h2>
+
+```{r}
+#importing data
+library(stm)
+library(quanteda)
+library(quanteda.textmodels)
+library(quanteda.textstats)
+library(quanteda.textplots)
+library(tidyverse)
+
+#taking data for UK
+data_comments_GB <- data.frame(GBcomments[,1:2])
+colnames(data_comments_GB) <- c("video_id","text")
+data_comments_GB[1,]
+#creating corpus
+data_corpus <- corpus(data_comments_GB,text_field = "text")
+
+summary(data_corpus, n = 5)
+```
+```{r}
+# longest comment
+tokeninfo <- summary(data_corpus)
+head(tokeninfo)
+tokeninfo[which.max(tokeninfo$Tokens), ] #larger comment
+```
+`
+
+
+```{r}
+#make matrix
+# make a dfm
+matrix_comments_GB <- tokens(data_corpus) %>% dfm()
+matrix_comments_GB[, 1:5]
+```
+```{r}
+# make a dfm, removing stopwords, numbers and applying stemming
+matrix_comments_GB_no_stop <- dfm(data_corpus, remove = stopwords("english"), 
+    stem = TRUE, remove_punct = TRUE, remove_numbers = TRUE)
+matrix_comments_GB_no_stop[1:5, 1:10]
+```
+```{r}
+#wordcloud
+set.seed(100)
+library(quanteda.textplots)
+textplot_wordcloud(matrix_comments_GB_no_stop, min_count = 6, random_order = FALSE, rotation = 0.25, 
+    color = RColorBrewer::brewer.pal(8, "Dark2"))
+```
+<h2>USA Data</h2>
+```{r}
+#USA comment analysis
+data_comments_US <- data.frame(UScomments[,1:2])
+colnames(data_comments_US) <- c("video_id","text")
+
+
+data_corpus_US <- corpus(data_comments_US,text_field = "text")
+
+summary(data_corpus_US, n = 5)
+```
+```{r}
+# make a dfm_US removing stopwords and applying stemming
+matrix_comments_GB_no_stop_US <- dfm(data_corpus_US, remove = stopwords("english"), 
+    stem = TRUE, remove_punct = TRUE, remove_numbers = TRUE)
+
+```
+```{r}
+#wordcloud
+set.seed(100)
+
+a <- textplot_wordcloud(matrix_comments_GB_no_stop_US, min_count = 6, random_order = FALSE, rotation = 0.25, 
+    color = RColorBrewer::brewer.pal(8, "Dark2"))
+```
+<h2>Top Topics UK (subset)</h2>
+```{r}
+#TOP topics
+set.seed(100)
+
+my_lda_fit20 <- stm(matrix_comments_GB_no_stop[1:1000,1:50], K = 20, verbose = FALSE)
+plot(my_lda_fit20)
+plot(my_lda_fit20)
+
+```
+
